@@ -8,7 +8,7 @@ This is used for a [device tracking integration](https://github.com/home-assista
 ```python
 import asyncio
 import json
-from src.zyxelt50.modem import ZyxelT50Modem
+from zyxelt50.modem import ZyxelT50Modem
 
 
 async def my_function():
