@@ -36,16 +36,17 @@ class ZyxelT50Modem:
         self._sw_version = None
         self._unique_id = None
 
-    async def connect(self) -> None:
+    def connect(self) -> None:
         """Set up a Zyxel modem."""
-        self.enc_aes_key = await self.__get_aes_key()
+        self.enc_aes_key = self.__get_aes_key()
 
         try:
-            await self.__login()
-        except CannotConnect:
+            self.__login()
+        except CannotConnect as exp:
             _LOGGER.error("Failed to connect to modem")
+            raise exp
 
-        status = await self.get_device_status()
+        status = self.get_device_status()
 
         device_info = status["DeviceInfo"]
         if self._unique_id is None:
@@ -54,7 +55,7 @@ class ZyxelT50Modem:
         self._model = device_info["ModelName"]
         self._sw_version = device_info["SoftwareVersion"]
 
-    async def __get_aes_key(self):
+    def __get_aes_key(self):
         # ONCE
         # get pub key
         response = self.r.get(f"http://{self.url}/getRSAPublickKey")
@@ -65,7 +66,7 @@ class ZyxelT50Modem:
         cipher_rsa = PKCS1_v1_5.new(pubkey)
         return cipher_rsa.encrypt(base64.b64encode(self.aes_key))
 
-    async def __login(self):
+    def __login(self):
         login_data = {
             "Input_Account": self.user,
             "Input_Passwd": base64.b64encode(self.password.encode('ascii')).decode('ascii'),
@@ -87,7 +88,7 @@ class ZyxelT50Modem:
         _LOGGER.error("Failed to decrypt response")
         raise CannotConnect
 
-    async def logout(self):
+    def logout(self):
         response = self.r.post(f"http://{self.url}/cgi-bin/UserLogout?sessionKey={self.sessionkey}")
         response = response.json()
 
@@ -96,7 +97,7 @@ class ZyxelT50Modem:
         else:
             return False
 
-    async def __get_device_info(self, oid):
+    def __get_device_info(self, oid):
         response = self.r.get(f"http://{self.url}/cgi-bin/DAL?oid={oid}")
         decrypted_response = decrypt_response(self.aes_key, response.json())
         if decrypted_response is not None:
@@ -107,16 +108,16 @@ class ZyxelT50Modem:
         _LOGGER.error("Failed to get device status")
         return None
 
-    async def get_device_status(self):
-        result = await self.__get_device_info("cardpage_status")
+    def get_device_status(self):
+        result = self.__get_device_info("cardpage_status")
         if result is not None:
             return result
 
         _LOGGER.error("Failed to get device status")
         return None
 
-    async def get_connected_devices(self):
-        result = await self.__get_device_info("lanhosts")
+    def get_connected_devices(self):
+        result = self.__get_device_info("lanhosts")
         if result is not None:
             devices = {}
             for device in result['lanhosts']:

@@ -6,17 +6,14 @@ This is used for a [device tracking integration](https://github.com/home-assista
 
 # Simple example
 ```python
-import asyncio
 import json
 from zyxelt50.modem import ZyxelT50Modem
 
 
-async def my_function():
-    router = ZyxelT50Modem('#YOUR ADMIN PASSWORD#')
-    await router.connect()
+router = ZyxelT50Modem('#YOUR ADMIN PASSWORD#')
+router.connect()
 
-    status = await router.get_connected_devices()
-    print(json.dumps(status, indent=4))
+status = router.get_connected_devices()
+print(json.dumps(status, indent=4))
 
-asyncio.run(my_function())
 ```
